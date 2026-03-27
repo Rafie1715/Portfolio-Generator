@@ -10,6 +10,7 @@ const portfolioRoutes = require('./routes/portfolioRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const FRONTEND_URL = String(process.env.FRONTEND_URL || '').trim();
 
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('✅ Terhubung ke MongoDB!'))
@@ -17,7 +18,7 @@ mongoose.connect(process.env.MONGODB_URI)
 
 app.use(express.json());
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
+  origin: FRONTEND_URL,
   credentials: true
 }));
 

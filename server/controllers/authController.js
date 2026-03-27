@@ -1,8 +1,25 @@
 const axios = require('axios');
 
+const trimUrl = (value = '') => String(value || '').trim().replace(/\/+$/, '');
+
+const getFrontendUrl = () => trimUrl(process.env.FRONTEND_URL) || 'http://localhost:5173';
+const getBackendUrl = () => trimUrl(process.env.BACKEND_URL);
+const getGithubClientId = () => String(process.env.GITHUB_CLIENT_ID || '').trim();
+const getGithubClientSecret = () => String(process.env.GITHUB_CLIENT_SECRET || '').trim();
+
 // Fungsi 1: Mengarahkan user ke halaman login GitHub
 const loginWithGithub = (req, res) => {
-  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&scope=read:user,repo`;
+  const params = new URLSearchParams({
+    client_id: getGithubClientId(),
+    scope: 'read:user,repo'
+  });
+
+  const backendUrl = getBackendUrl();
+  if (backendUrl) {
+    params.set('redirect_uri', `${backendUrl}/api/auth/github/callback`);
+  }
+
+  const githubAuthUrl = `https://github.com/login/oauth/authorize?${params.toString()}`;
   res.redirect(githubAuthUrl);
 };
 
@@ -15,12 +32,14 @@ const githubCallback = async (req, res) => {
   }
 
   try {
+    const frontendUrl = getFrontendUrl();
+
     // Tukar kode dengan access token
     const tokenResponse = await axios.post(
       'https://github.com/login/oauth/access_token',
       {
-        client_id: process.env.GITHUB_CLIENT_ID,
-        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        client_id: getGithubClientId(),
+        client_secret: getGithubClientSecret(),
         code: code,
       },
       {
@@ -34,11 +53,11 @@ const githubCallback = async (req, res) => {
 
     // Arahkan kembali ke frontend (React) sambil membawa token di URL
     // Nanti React yang akan mengambil token ini dan menyimpannya
-    res.redirect(`${process.env.FRONTEND_URL}/dashboard?token=${accessToken}`);
+    res.redirect(`${frontendUrl}/dashboard?token=${accessToken}`);
     
   } catch (error) {
     console.error("Error saat menukar token:", error.message);
-    res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
+    res.redirect(`${getFrontendUrl()}/login?error=auth_failed`);
   }
 };
 
