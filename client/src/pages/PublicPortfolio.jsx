@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Star, MapPin, Github, ExternalLink, Terminal, Code2, FolderGit2, Linkedin, GitFork, Search, Briefcase, GraduationCap, Award, FileText } from 'lucide-react';
+import { PORTFOLIO_API_BASE_URL } from '../config/api';
 
 const PublicPortfolio = () => {
     const { username } = useParams();
@@ -19,7 +20,7 @@ const PublicPortfolio = () => {
     useEffect(() => {
         const fetchPublicData = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/api/portfolio/${username}`);
+                const response = await axios.get(`${PORTFOLIO_API_BASE_URL}/${username}`);
                 setData(response.data);
             } catch (err) {
                 setError(err.response?.data?.error || 'Gagal memuat portofolio.');
@@ -148,7 +149,7 @@ const PublicPortfolio = () => {
 
     const trackProjectClick = (repo) => {
         const payload = JSON.stringify({ repoId: repo.id, repoName: repo.name });
-        const endpoint = `http://localhost:5000/api/portfolio/${data.username}/click`;
+        const endpoint = `${PORTFOLIO_API_BASE_URL}/${data.username}/click`;
 
         if (navigator.sendBeacon) {
             const blob = new Blob([payload], { type: 'application/json' });
@@ -174,7 +175,7 @@ const PublicPortfolio = () => {
             repoName: repo.name,
             action
         });
-        const endpoint = `http://localhost:5000/api/portfolio/${data.username}/modal-event`;
+        const endpoint = `${PORTFOLIO_API_BASE_URL}/${data.username}/modal-event`;
 
         if (navigator.sendBeacon) {
             const blob = new Blob([payload], { type: 'application/json' });
@@ -455,7 +456,7 @@ const PublicPortfolio = () => {
                                         <FileText size={17} /> CV View
                                     </Link>
 
-                                    <a href={`http://localhost:5000/api/portfolio/${data.username}/share`} target="_blank" rel="noreferrer" className={`flex items-center gap-2 font-medium transition-colors px-5 py-2.5 rounded-full ${themePreset.button}`}>
+                                    <a href={`${PORTFOLIO_API_BASE_URL}/${data.username}/share`} target="_blank" rel="noreferrer" className={`flex items-center gap-2 font-medium transition-colors px-5 py-2.5 rounded-full ${themePreset.button}`}>
                                         <ExternalLink size={17} /> Share Link
                                     </a>
                                 </div>

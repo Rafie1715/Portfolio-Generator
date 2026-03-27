@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { LogOut, Star, Code2, Rocket, LayoutDashboard, Terminal, Linkedin, Sparkles, GitFork, Search, Briefcase, GraduationCap, Plus, Trash2, Award, WandSparkles, CheckCircle2, Circle } from 'lucide-react';
+import { PORTFOLIO_API_BASE_URL } from '../config/api';
 
 const MAX_SELECTED_REPOS = 9;
 const VISUAL_THEMES = [
@@ -280,7 +281,7 @@ const EMPTY_DEPLOY_CONFIG = {
     netlifySiteId: '',
     netlifyBuildHookUrl: ''
 };
-const API_BASE_URL = 'http://localhost:5000/api/portfolio';
+const API_BASE_URL = PORTFOLIO_API_BASE_URL;
 const DASHBOARD_DRAFT_PREFIX = 'portfolio_dashboard_draft_';
 
 const Dashboard = () => {

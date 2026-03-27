@@ -1,6 +1,7 @@
 // client/src/pages/Login.jsx
 import { useEffect, useRef, useState } from 'react';
 import { Github, Sparkles, Code2, Volume2, VolumeX } from 'lucide-react';
+import { AUTH_GITHUB_URL } from '../config/api';
 
 const TYPEWRITER_WORDS = ['Shine Everywhere.', 'Get Hired Faster.', 'Tell Better Story.'];
 
@@ -103,7 +104,7 @@ const Login = () => {
     playLaunchSound();
     setIsRedirecting(true);
     window.setTimeout(() => {
-      window.location.href = 'http://localhost:5000/api/auth/github';
+      window.location.href = AUTH_GITHUB_URL;
     }, reducedMotion ? 120 : 920);
   };
 

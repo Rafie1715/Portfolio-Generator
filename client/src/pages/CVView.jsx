@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
+import { PORTFOLIO_API_BASE_URL } from '../config/api';
 import {
     ArrowLeft,
     Printer,
@@ -30,7 +31,7 @@ const CVView = () => {
     useEffect(() => {
         const fetchPortfolio = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/api/portfolio/${username}`);
+                const response = await axios.get(`${PORTFOLIO_API_BASE_URL}/${username}`);
                 setData(response.data);
             } catch (err) {
                 setError(err.response?.data?.error || 'Gagal memuat data CV.');
