@@ -5,6 +5,7 @@ const {
 	savePortfolioDraft,
 	savePortfolio,
 	getPortfolioByUsername,
+	getPortfolioPreview,
 	trackProjectClick,
 	trackModalEvent,
 	getPortfolioAnalytics,
@@ -15,6 +16,7 @@ const {
 router.get('/data', getGithubData); // Rute privat (butuh token)
 router.post('/save-draft', savePortfolioDraft);
 router.post('/save', savePortfolio); // Rute privat (butuh token)
+router.get('/preview/:username', getPortfolioPreview);
 router.post('/:username/click', trackProjectClick);
 router.post('/:username/modal-event', trackModalEvent);
 router.get('/:username/analytics', getPortfolioAnalytics);

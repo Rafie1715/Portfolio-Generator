@@ -12,6 +12,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         
         {/* Rute dinamis untuk portofolio publik */}
+        <Route path="/preview/:username" element={<PublicPortfolio isPreview />} />
         <Route path="/p/:username" element={<PublicPortfolio />} />
         <Route path="/cv/:username" element={<CVView />} />
       </Routes>

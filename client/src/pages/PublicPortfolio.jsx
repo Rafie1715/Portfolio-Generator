@@ -1,11 +1,129 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Star, MapPin, Github, ExternalLink, Terminal, Code2, FolderGit2, Linkedin, GitFork, Search, Briefcase, GraduationCap, Award, FileText } from 'lucide-react';
 import { PORTFOLIO_API_BASE_URL } from '../config/api';
 
-const PublicPortfolio = () => {
+const PREVIEW_I18N = {
+    id: {
+        loading: 'MEMUAT DATA...',
+        loadFailed: 'Gagal memuat portofolio.',
+        sessionExpired: 'Sesi preview berakhir. Silakan login ulang dari dashboard.',
+        modeBadge: 'Preview Mode',
+        modeDescription: 'Ini tampilan draft kamu dan belum dipublikasikan.',
+        publishNow: 'Publish Sekarang',
+        publishing: 'Publishing...',
+        backToDashboard: 'Kembali ke Dashboard',
+        noSelectedRepo: 'Belum ada repo terpilih untuk dipublish. Pilih repo dulu di dashboard.',
+        noToken: 'Sesi login tidak ditemukan. Silakan login ulang dari dashboard.',
+        publishSuccess: 'Draft berhasil dipublish. Portfolio publik sudah aktif.',
+        publishFailed: 'Gagal publish dari preview. Coba lagi.',
+        openPublicPage: 'Lihat halaman publik',
+        draftPreviewLabel: 'Draft Preview',
+        publicPortfolioLabel: 'Public Portfolio',
+        cvView: 'Lihat CV',
+        shareLink: 'Bagikan',
+        bioFallback: 'Membangun perangkat lunak yang fungsional dan indah.',
+        insightPanel: 'Panel Insight',
+        projects: 'Proyek',
+        views: 'Views',
+        stars: 'Stars',
+        forks: 'Forks',
+        projectClicks: 'Klik Proyek',
+        top: 'Teratas',
+        domain: 'Domain',
+        projectStory: 'Cerita Proyek',
+        highlights: 'Highlight',
+        codeFallback: 'Kode',
+        clicks: 'Klik',
+        demo: 'Demo',
+        secretProjectNoDescription: 'Proyek ini belum punya deskripsi. Lihat source code untuk detail lebih lanjut.',
+        experienceTitle: 'Pengalaman',
+        educationTitle: 'Pendidikan',
+        certificationTitle: 'Sertifikasi & Achievement',
+        roleFallback: 'Role',
+        institutionFallback: 'Institusi',
+        certificationFallback: 'Sertifikasi',
+        viewCredential: 'Lihat Credential',
+        featuredProjects: 'Proyek Pilihan',
+        itemsSuffix: 'item',
+        searchPlaceholder: 'Cari nama proyek, deskripsi, bahasa, atau topik...',
+        allLanguages: 'Semua Bahasa',
+        sortStars: 'Urut: Bintang',
+        sortUpdated: 'Urut: Terbaru',
+        sortName: 'Urut: Nama',
+        emptySearchTitle: 'Hasil pencarian kosong',
+        emptySearchDescription: 'Tidak ada proyek yang cocok dengan filter saat ini. Coba ganti kata kunci atau urutan.',
+        footerText: 'Dirancang & Dikembangkan secara Otomatis',
+        quickPreviewTitle: 'Preview Cepat',
+        close: 'Tutup',
+        projectDescriptionFallback: 'Belum ada deskripsi proyek untuk ditampilkan.',
+        openGithub: 'Buka GitHub',
+        openDemo: 'Buka Demo',
+        openPreviewAria: 'Buka preview proyek'
+    },
+    en: {
+        loading: 'LOADING DATA...',
+        loadFailed: 'Failed to load portfolio.',
+        sessionExpired: 'Preview session has ended. Please login again from the dashboard.',
+        modeBadge: 'Preview Mode',
+        modeDescription: 'This is your draft view and it is not published yet.',
+        publishNow: 'Publish Now',
+        publishing: 'Publishing...',
+        backToDashboard: 'Back to Dashboard',
+        noSelectedRepo: 'No selected repositories to publish yet. Please select repositories from the dashboard.',
+        noToken: 'Login session not found. Please login again from the dashboard.',
+        publishSuccess: 'Draft published successfully. Your public portfolio is now live.',
+        publishFailed: 'Failed to publish from preview. Please try again.',
+        openPublicPage: 'Open public page',
+        draftPreviewLabel: 'Draft Preview',
+        publicPortfolioLabel: 'Public Portfolio',
+        cvView: 'CV View',
+        shareLink: 'Share Link',
+        bioFallback: 'Building functional and beautiful software.',
+        insightPanel: 'Insight Panel',
+        projects: 'Projects',
+        views: 'Views',
+        stars: 'Stars',
+        forks: 'Forks',
+        projectClicks: 'Project Clicks',
+        top: 'Top',
+        domain: 'Domain',
+        projectStory: 'Project Story',
+        highlights: 'Highlights',
+        codeFallback: 'Code',
+        clicks: 'Clicks',
+        demo: 'Demo',
+        secretProjectNoDescription: 'This project has no description yet. Open the source code for more details.',
+        experienceTitle: 'Experience',
+        educationTitle: 'Education',
+        certificationTitle: 'Certifications & Achievements',
+        roleFallback: 'Role',
+        institutionFallback: 'Institution',
+        certificationFallback: 'Certification',
+        viewCredential: 'View Credential',
+        featuredProjects: 'Featured Projects',
+        itemsSuffix: 'items',
+        searchPlaceholder: 'Search project name, description, language, or topic...',
+        allLanguages: 'All Languages',
+        sortStars: 'Sort: Stars',
+        sortUpdated: 'Sort: Recently Updated',
+        sortName: 'Sort: Name',
+        emptySearchTitle: 'No search results',
+        emptySearchDescription: 'No projects match the current filters. Try different keywords or sorting.',
+        footerText: 'Designed & Generated Automatically',
+        quickPreviewTitle: 'Quick Preview',
+        close: 'Close',
+        projectDescriptionFallback: 'No project description available to show.',
+        openGithub: 'Open GitHub',
+        openDemo: 'Open Demo',
+        openPreviewAria: 'Open project preview'
+    }
+};
+
+const PublicPortfolio = ({ isPreview = false }) => {
     const { username } = useParams();
+    const navigate = useNavigate();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -14,23 +132,47 @@ const PublicPortfolio = () => {
     const [sortBy, setSortBy] = useState('stars');
     const [tiltEnabled, setTiltEnabled] = useState(false);
     const [focusedRepo, setFocusedRepo] = useState(null);
+    const [isPublishingDraft, setIsPublishingDraft] = useState(false);
+    const [previewPublishNotice, setPreviewPublishNotice] = useState('');
+    const [previewPublishStatus, setPreviewPublishStatus] = useState('idle');
     const modalRef = useRef(null);
     const lastFocusedTriggerRef = useRef(null);
+
+    const locale = useMemo(() => {
+        const saved = localStorage.getItem('dashboard_locale');
+        return saved === 'en' ? 'en' : 'id';
+    }, []);
+
+    const p = PREVIEW_I18N[locale] || PREVIEW_I18N.id;
 
     useEffect(() => {
         const fetchPublicData = async () => {
             try {
+                if (isPreview) {
+                    const token = localStorage.getItem('github_token');
+                    if (!token) {
+                        setError(p.sessionExpired);
+                        return;
+                    }
+
+                    const response = await axios.get(`${PORTFOLIO_API_BASE_URL}/preview/${username}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    setData(response.data);
+                    return;
+                }
+
                 const response = await axios.get(`${PORTFOLIO_API_BASE_URL}/${username}`);
                 setData(response.data);
             } catch (err) {
-                setError(err.response?.data?.error || 'Gagal memuat portofolio.');
+                setError(err.response?.data?.error || p.loadFailed);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchPublicData();
-    }, [username]);
+    }, [username, isPreview, p.sessionExpired]);
 
     useEffect(() => {
         try {
@@ -148,6 +290,8 @@ const PublicPortfolio = () => {
     }, [data, filteredRepositories.length, experiences.length, educations.length, certifications.length]);
 
     const trackProjectClick = (repo) => {
+        if (isPreview) return;
+
         const payload = JSON.stringify({ repoId: repo.id, repoName: repo.name });
         const endpoint = `${PORTFOLIO_API_BASE_URL}/${data.username}/click`;
 
@@ -168,6 +312,7 @@ const PublicPortfolio = () => {
     };
 
     const trackModalEvent = useCallback((repo, action) => {
+        if (isPreview) return;
         if (!repo || !action || !data?.username) return;
 
         const payload = JSON.stringify({
@@ -191,7 +336,7 @@ const PublicPortfolio = () => {
         }).catch(() => {
             // Ignore tracking failure to keep primary UX smooth.
         });
-    }, [data?.username]);
+    }, [data?.username, isPreview]);
 
     const handleCardPointerMove = (event) => {
         if (!tiltEnabled) return;
@@ -246,6 +391,46 @@ const PublicPortfolio = () => {
     const openRepoExternal = (repo, url) => {
         trackProjectClick(repo);
         window.open(url, '_blank', 'noopener,noreferrer');
+    };
+
+    const handlePublishFromPreview = async () => {
+        if (!isPreview || !data?.profile?.username) return;
+
+        if (!Array.isArray(data.repositories) || data.repositories.length === 0) {
+            setPreviewPublishStatus('error');
+            setPreviewPublishNotice(p.noSelectedRepo);
+            return;
+        }
+
+        const token = localStorage.getItem('github_token');
+        if (!token) {
+            setPreviewPublishStatus('error');
+            setPreviewPublishNotice(p.noToken);
+            return;
+        }
+
+        try {
+            setIsPublishingDraft(true);
+            setPreviewPublishStatus('idle');
+            setPreviewPublishNotice('');
+
+            await axios.post(`${PORTFOLIO_API_BASE_URL}/save`, {
+                profile: data.profile,
+                repositories: data.repositories,
+                theme: data.theme || 'dark',
+                customization: data.customization || {}
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            setPreviewPublishStatus('success');
+            setPreviewPublishNotice(p.publishSuccess);
+        } catch (publishError) {
+            setPreviewPublishStatus('error');
+            setPreviewPublishNotice(publishError.response?.data?.error || p.publishFailed);
+        } finally {
+            setIsPublishingDraft(false);
+        }
     };
 
     useEffect(() => {
@@ -310,7 +495,7 @@ const PublicPortfolio = () => {
             key={repo.id || repo.name}
             role="button"
             tabIndex={0}
-            aria-label={`Buka preview proyek ${repo.name}`}
+            aria-label={`${p.openPreviewAria} ${repo.name}`}
             onClick={(event) => openRepoPreview(repo, event.currentTarget)}
             onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
@@ -334,12 +519,12 @@ const PublicPortfolio = () => {
             </div>
 
             <p className={`text-slate-400 leading-relaxed mb-5 flex-1 relative z-10 ${isFeatured ? 'text-sm line-clamp-4' : 'text-sm line-clamp-3'}`}>
-                {repo.description || 'Proyek rahasia tanpa deskripsi. Lihat source code untuk detail lebih lanjut.'}
+                {repo.description || p.secretProjectNoDescription}
             </p>
 
             {repo.readme_summary && (
                 <div className={`mb-4 rounded-lg px-3 py-2 ${themePreset.softCard}`}>
-                    <p className="text-[11px] uppercase tracking-wider text-slate-500 mb-1">Project Story</p>
+                    <p className="text-[11px] uppercase tracking-wider text-slate-500 mb-1">{p.projectStory}</p>
                     <p className="text-xs text-slate-300 line-clamp-2">{repo.readme_summary}</p>
                 </div>
             )}
@@ -355,12 +540,12 @@ const PublicPortfolio = () => {
             <div className="flex justify-between items-center pt-4 border-t border-slate-800/80 relative z-10 mt-auto gap-3 flex-wrap">
                 <span className="flex items-center gap-2 text-xs font-medium text-slate-300 bg-slate-800/50 px-2.5 py-1 rounded-md">
                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: accentColor }}></span>
-                    {repo.language || 'Code'}
+                    {repo.language || p.codeFallback}
                 </span>
                 <div className="flex items-center gap-3 text-slate-400 text-sm font-medium">
                     <span className="flex items-center gap-1"><Star size={15} /> {repo.stargazers_count}</span>
                     <span className="flex items-center gap-1"><GitFork size={15} /> {repo.forks_count || 0}</span>
-                    <span className="flex items-center gap-1 text-slate-500">Clicks {projectClickMap.get(repo.id) || projectClickMap.get(repo.name) || 0}</span>
+                    <span className="flex items-center gap-1 text-slate-500">{p.clicks} {projectClickMap.get(repo.id) || projectClickMap.get(repo.name) || 0}</span>
                 </div>
             </div>
 
@@ -376,7 +561,7 @@ const PublicPortfolio = () => {
 
             {repo.homepage && (
                 <div className="mt-3 text-xs text-slate-500 truncate relative z-10">
-                    Demo: {repo.homepage}
+                    {p.demo}: {repo.homepage}
                 </div>
             )}
         </article>
@@ -386,7 +571,7 @@ const PublicPortfolio = () => {
         return (
             <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center space-y-4">
                 <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-                <p className="text-slate-400 font-medium tracking-widest animate-pulse">MEMUAT DATA...</p>
+                <p className="text-slate-400 font-medium tracking-widest animate-pulse">{p.loading}</p>
             </div>
         );
     }
@@ -409,6 +594,44 @@ const PublicPortfolio = () => {
 
             <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 md:py-20 relative z-10">
                 <header data-reveal className="scroll-reveal mb-16 md:mb-20 relative" style={{ '--reveal-delay': '20ms' }}>
+                    {isPreview ? (
+                        <div className="mb-4 rounded-2xl border border-amber-300/50 bg-gradient-to-r from-amber-900/45 via-amber-800/20 to-amber-900/45 px-4 py-3 text-xs text-amber-100 shadow-[0_0_0_1px_rgba(251,191,36,0.16)]">
+                            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                                <div>
+                                    <span className="inline-flex text-[10px] px-2 py-1 rounded-full border border-amber-300/60 bg-amber-500/20 uppercase tracking-widest font-semibold mb-2">{p.modeBadge}</span>
+                                    <p>{p.modeDescription}</p>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={handlePublishFromPreview}
+                                        disabled={isPublishingDraft}
+                                        className="px-3 py-1.5 rounded-lg border border-emerald-400/60 bg-emerald-500/20 text-emerald-100 hover:text-white hover:border-emerald-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                                    >
+                                        {isPublishingDraft ? p.publishing : p.publishNow}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate('/dashboard')}
+                                        className="px-3 py-1.5 rounded-lg border border-amber-400/60 text-amber-100 hover:text-white hover:border-amber-300"
+                                    >
+                                        {p.backToDashboard}
+                                    </button>
+                                </div>
+                            </div>
+                            {previewPublishNotice && (
+                                <p className="mt-2 text-[11px] text-amber-100/90">
+                                    {previewPublishNotice}
+                                    {previewPublishStatus === 'success' && data?.username ? (
+                                        <Link to={`/p/${data.username}`} className="ml-2 underline decoration-amber-200/80 hover:text-white">
+                                            {p.openPublicPage}
+                                        </Link>
+                                    ) : null}
+                                </p>
+                            )}
+                        </div>
+                    ) : null}
+
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
                         <div className={`lg:col-span-2 rounded-3xl p-7 md:p-9 ${themePreset.panel} relative overflow-hidden`}>
                             <div className="absolute -right-24 top-6 w-56 h-56 rounded-full blur-3xl opacity-40" style={{ backgroundColor: `${accentColor}55` }} />
@@ -425,7 +648,7 @@ const PublicPortfolio = () => {
                                         />
                                     </div>
                                     <div className="text-center sm:text-left">
-                                        <p className="text-xs uppercase tracking-[0.18em] text-slate-500 mb-1">Public Portfolio</p>
+                                        <p className="text-xs uppercase tracking-[0.18em] text-slate-500 mb-1">{isPreview ? p.draftPreviewLabel : p.publicPortfolioLabel}</p>
                                         <h1 className="font-display text-3xl md:text-5xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-500">
                                             {data.profile.name || data.username}
                                         </h1>
@@ -453,16 +676,18 @@ const PublicPortfolio = () => {
                                     )}
 
                                     <Link to={`/cv/${data.username}`} className={`flex items-center gap-2 font-medium transition-colors px-5 py-2.5 rounded-full ${themePreset.button}`}>
-                                        <FileText size={17} /> CV View
+                                        <FileText size={17} /> {p.cvView}
                                     </Link>
 
-                                    <a href={`${PORTFOLIO_API_BASE_URL}/${data.username}/share`} target="_blank" rel="noreferrer" className={`flex items-center gap-2 font-medium transition-colors px-5 py-2.5 rounded-full ${themePreset.button}`}>
-                                        <ExternalLink size={17} /> Share Link
-                                    </a>
+                                    {!isPreview && (
+                                        <a href={`${PORTFOLIO_API_BASE_URL}/${data.username}/share`} target="_blank" rel="noreferrer" className={`flex items-center gap-2 font-medium transition-colors px-5 py-2.5 rounded-full ${themePreset.button}`}>
+                                            <ExternalLink size={17} /> {p.shareLink}
+                                        </a>
+                                    )}
                                 </div>
 
                                 <p className="text-slate-400 text-sm md:text-lg max-w-2xl leading-relaxed">
-                                    {profile.bio || 'Membangun perangkat lunak yang fungsional dan indah.'}
+                                    {profile.bio || p.bioFallback}
                                 </p>
 
                                 {profile.location && (
@@ -474,37 +699,41 @@ const PublicPortfolio = () => {
                         </div>
 
                         <div className={`rounded-3xl p-6 ${themePreset.panel}`}>
-                            <p className="text-xs uppercase tracking-[0.15em] text-slate-500 mb-4">Insight Panel</p>
+                            <p className="text-xs uppercase tracking-[0.15em] text-slate-500 mb-4">{p.insightPanel}</p>
                             <div className="grid grid-cols-2 gap-3 mb-4">
                                 <div className={`rounded-xl p-4 ${themePreset.softCard}`}>
-                                    <p className="text-slate-500 text-[11px] uppercase tracking-wider">Proyek</p>
+                                    <p className="text-slate-500 text-[11px] uppercase tracking-wider">{p.projects}</p>
                                     <p className="text-2xl font-display text-white">{repositories.length}</p>
                                 </div>
+                                {!isPreview && (
+                                    <div className={`rounded-xl p-4 ${themePreset.softCard}`}>
+                                        <p className="text-slate-500 text-[11px] uppercase tracking-wider">{p.views}</p>
+                                        <p className="text-2xl font-display text-white">{analytics.views || 0}</p>
+                                    </div>
+                                )}
                                 <div className={`rounded-xl p-4 ${themePreset.softCard}`}>
-                                    <p className="text-slate-500 text-[11px] uppercase tracking-wider">Views</p>
-                                    <p className="text-2xl font-display text-white">{analytics.views || 0}</p>
-                                </div>
-                                <div className={`rounded-xl p-4 ${themePreset.softCard}`}>
-                                    <p className="text-slate-500 text-[11px] uppercase tracking-wider">Stars</p>
+                                    <p className="text-slate-500 text-[11px] uppercase tracking-wider">{p.stars}</p>
                                     <p className="text-2xl font-display text-white">{totalStars}</p>
                                 </div>
                                 <div className={`rounded-xl p-4 ${themePreset.softCard}`}>
-                                    <p className="text-slate-500 text-[11px] uppercase tracking-wider">Forks</p>
+                                    <p className="text-slate-500 text-[11px] uppercase tracking-wider">{p.forks}</p>
                                     <p className="text-2xl font-display text-white">{totalForks}</p>
                                 </div>
                             </div>
 
-                            <div className={`rounded-xl p-4 ${themePreset.softCard} mb-3`}>
-                                <p className="text-[11px] uppercase tracking-wider text-slate-500 mb-1">Project Clicks</p>
-                                <p className="text-lg font-semibold text-slate-200">{totalProjectClicks}</p>
-                                {topClickedProject && (
-                                    <p className="text-xs text-slate-400 mt-1">Top: {topClickedProject.repoName || 'Repo'} ({topClickedProject.count || 0})</p>
-                                )}
-                            </div>
+                            {!isPreview && (
+                                <div className={`rounded-xl p-4 ${themePreset.softCard} mb-3`}>
+                                    <p className="text-[11px] uppercase tracking-wider text-slate-500 mb-1">{p.projectClicks}</p>
+                                    <p className="text-lg font-semibold text-slate-200">{totalProjectClicks}</p>
+                                    {topClickedProject && (
+                                        <p className="text-xs text-slate-400 mt-1">{p.top}: {topClickedProject.repoName || p.projects} ({topClickedProject.count || 0})</p>
+                                    )}
+                                </div>
+                            )}
 
                             {customDomain && (
                                 <a href={`https://${customDomain}`} target="_blank" rel="noreferrer" className={`text-xs inline-flex px-3 py-2 rounded-lg ${themePreset.softCard}`}>
-                                    Domain: {customDomain}
+                                    {p.domain}: {customDomain}
                                 </a>
                             )}
                         </div>
@@ -530,7 +759,7 @@ const PublicPortfolio = () => {
                                 <div className={`${themePreset.panel} rounded-2xl p-6`}>
                                     <div className="flex items-center gap-2 mb-4">
                                         <Briefcase size={18} style={{ color: accentColor }} />
-                                        <h3 className="text-xl font-bold text-white">Pengalaman</h3>
+                                        <h3 className="text-xl font-bold text-white">{p.experienceTitle}</h3>
                                     </div>
                                     <div className="relative pl-5">
                                         <div className="absolute left-2 top-1 bottom-1 w-px bg-slate-700"></div>
@@ -538,7 +767,7 @@ const PublicPortfolio = () => {
                                             {experiences.map((experience, index) => (
                                                 <article key={`exp-${index}`} className={`relative rounded-xl p-4 ${themePreset.card}`}>
                                                     <span className="absolute -left-[22px] top-5 w-3 h-3 rounded-full border-2 border-slate-900" style={{ backgroundColor: accentColor }}></span>
-                                                    <h4 className="text-slate-100 font-semibold">{experience.role || 'Role'}</h4>
+                                                    <h4 className="text-slate-100 font-semibold">{experience.role || p.roleFallback}</h4>
                                                     <p className="text-sm text-slate-400">{experience.company || '-'}</p>
                                                     {experience.period && <p className="text-xs mt-1" style={{ color: accentColor }}>{experience.period}</p>}
                                                     {experience.summary && <p className="text-sm text-slate-300 mt-3 leading-relaxed">{experience.summary}</p>}
@@ -553,12 +782,12 @@ const PublicPortfolio = () => {
                                 <div className={`${themePreset.panel} rounded-2xl p-6`}>
                                     <div className="flex items-center gap-2 mb-4">
                                         <GraduationCap size={18} style={{ color: accentColor }} />
-                                        <h3 className="text-xl font-bold text-white">Pendidikan</h3>
+                                        <h3 className="text-xl font-bold text-white">{p.educationTitle}</h3>
                                     </div>
                                     <div className="space-y-4">
                                         {educations.map((education, index) => (
                                             <article key={`edu-${index}`} className={`rounded-xl p-4 ${themePreset.card}`}>
-                                                <h4 className="text-slate-100 font-semibold">{education.school || 'Institusi'}</h4>
+                                                <h4 className="text-slate-100 font-semibold">{education.school || p.institutionFallback}</h4>
                                                 <p className="text-sm text-slate-400">{education.degree || '-'}</p>
                                                 {education.period && <p className="text-xs text-slate-500 mt-1">{education.period}</p>}
                                                 {education.summary && <p className="text-sm text-slate-300 mt-3 leading-relaxed">{education.summary}</p>}
@@ -573,17 +802,17 @@ const PublicPortfolio = () => {
                             <div className={`${themePreset.panel} rounded-2xl p-6`}>
                                 <div className="flex items-center gap-2 mb-4">
                                     <Award size={18} style={{ color: accentColor }} />
-                                    <h3 className="text-xl font-bold text-white">Sertifikasi & Achievement</h3>
+                                    <h3 className="text-xl font-bold text-white">{p.certificationTitle}</h3>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {certifications.map((certification, index) => (
                                         <article key={`cert-${index}`} className={`rounded-xl p-4 ${themePreset.card}`}>
-                                            <h4 className="text-slate-100 font-semibold">{certification.title || 'Sertifikasi'}</h4>
+                                            <h4 className="text-slate-100 font-semibold">{certification.title || p.certificationFallback}</h4>
                                             <p className="text-sm text-slate-400">{certification.issuer || '-'}</p>
                                             {certification.year && <p className="text-xs mt-1" style={{ color: accentColor }}>{certification.year}</p>}
                                             {certification.credentialUrl && (
                                                 <a href={certification.credentialUrl} target="_blank" rel="noreferrer" className="text-xs text-slate-300 hover:text-white mt-3 inline-flex">
-                                                    Lihat Credential
+                                                    {p.viewCredential}
                                                 </a>
                                             )}
                                         </article>
@@ -597,8 +826,8 @@ const PublicPortfolio = () => {
                 <main data-reveal className="scroll-reveal" style={{ '--reveal-delay': '120ms' }}>
                     <div className="flex items-center gap-3 mb-6 md:mb-10">
                         <FolderGit2 size={28} style={{ color: accentColor }} />
-                        <h2 className="text-3xl font-bold text-white tracking-tight">Proyek Pilihan</h2>
-                        <span className="text-xs text-slate-400 border border-slate-700 rounded-full px-2 py-1">{filteredRepositories.length} items</span>
+                        <h2 className="text-3xl font-bold text-white tracking-tight">{p.featuredProjects}</h2>
+                        <span className="text-xs text-slate-400 border border-slate-700 rounded-full px-2 py-1">{filteredRepositories.length} {p.itemsSuffix}</span>
                         <div className="h-px bg-gradient-to-r from-slate-800 to-transparent flex-1 ml-4"></div>
                     </div>
 
@@ -609,7 +838,7 @@ const PublicPortfolio = () => {
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Cari nama proyek, deskripsi, bahasa, atau topik..."
+                                placeholder={p.searchPlaceholder}
                                 className="w-full bg-[#111111]/70 border border-slate-800 rounded-xl pl-9 pr-4 py-3 text-sm text-slate-200 outline-none focus:border-cyan-500/60"
                             />
                         </div>
@@ -619,7 +848,7 @@ const PublicPortfolio = () => {
                                 onChange={(e) => setLanguageFilter(e.target.value)}
                                 className="bg-[#111111]/70 border border-slate-800 rounded-xl px-3 py-3 text-sm text-slate-300 outline-none focus:border-cyan-500/60"
                             >
-                                <option value="all">Semua Bahasa</option>
+                                <option value="all">{p.allLanguages}</option>
                                 {techStack.map((tech) => (
                                     <option key={tech} value={tech}>{tech}</option>
                                 ))}
@@ -629,9 +858,9 @@ const PublicPortfolio = () => {
                                 onChange={(e) => setSortBy(e.target.value)}
                                 className="bg-[#111111]/70 border border-slate-800 rounded-xl px-3 py-3 text-sm text-slate-300 outline-none focus:border-cyan-500/60"
                             >
-                                <option value="stars">Urut: Bintang</option>
-                                <option value="updated">Urut: Terbaru</option>
-                                <option value="name">Urut: Nama</option>
+                                <option value="stars">{p.sortStars}</option>
+                                <option value="updated">{p.sortUpdated}</option>
+                                <option value="name">{p.sortName}</option>
                             </select>
                         </div>
                     </div>
@@ -651,14 +880,14 @@ const PublicPortfolio = () => {
                                 <path d="M184 28 L206 8" stroke="currentColor" opacity="0.45" strokeWidth="2" strokeLinecap="round" />
                                 <circle cx="210" cy="6" r="4" fill="currentColor" opacity="0.65" />
                             </svg>
-                            <p className="text-base font-semibold text-slate-200 mb-1">Hasil pencarian kosong</p>
-                            <p className="text-sm text-slate-400">Tidak ada proyek yang cocok dengan filter saat ini. Coba ganti kata kunci atau urutan.</p>
+                            <p className="text-base font-semibold text-slate-200 mb-1">{p.emptySearchTitle}</p>
+                            <p className="text-sm text-slate-400">{p.emptySearchDescription}</p>
                         </div>
                     )}
                 </main>
 
                 <footer className="mt-24 text-center text-slate-600 text-sm border-t border-slate-800 pt-8">
-                    <p>Dirancang & Dikembangkan secara Otomatis</p>
+                    <p>{p.footerText}</p>
                 </footer>
             </div>
 
@@ -678,33 +907,33 @@ const PublicPortfolio = () => {
                     >
                         <div className="flex items-start justify-between gap-4 mb-4">
                             <div>
-                                <p className="text-xs uppercase tracking-[0.18em] text-slate-500 mb-1">Quick Preview</p>
+                                <p className="text-xs uppercase tracking-[0.18em] text-slate-500 mb-1">{p.quickPreviewTitle}</p>
                                 <h3 className="text-2xl md:text-3xl font-bold text-white">{focusedRepo.name}</h3>
-                                <p className="text-sm mt-1" style={{ color: accentColor }}>{focusedRepo.language || 'Code'}</p>
+                                <p className="text-sm mt-1" style={{ color: accentColor }}>{focusedRepo.language || p.codeFallback}</p>
                             </div>
                             <button
                                 type="button"
                                 onClick={closeRepoPreview}
                                 className="text-xs px-3.5 py-2 rounded-lg border border-slate-700 text-slate-300 hover:text-white hover:border-slate-500"
                             >
-                                Close
+                                {p.close}
                             </button>
                         </div>
 
                         <p className="text-slate-300 leading-relaxed mb-4">
-                            {focusedRepo.description || 'Belum ada deskripsi proyek untuk ditampilkan.'}
+                            {focusedRepo.description || p.projectDescriptionFallback}
                         </p>
 
                         {focusedRepo.readme_summary && (
                             <div className={`rounded-xl p-4 mb-4 ${themePreset.softCard}`}>
-                                <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">Project Story</p>
+                                <p className="text-xs uppercase tracking-wider text-slate-500 mb-1">{p.projectStory}</p>
                                 <p className="text-sm text-slate-300">{focusedRepo.readme_summary}</p>
                             </div>
                         )}
 
                         {focusedRepo.contribution_highlights?.length > 0 && (
                             <div className={`rounded-xl p-4 mb-4 ${themePreset.softCard}`}>
-                                <p className="text-xs uppercase tracking-wider text-slate-500 mb-2">Highlights</p>
+                                <p className="text-xs uppercase tracking-wider text-slate-500 mb-2">{p.highlights}</p>
                                 <div className="space-y-1.5">
                                     {focusedRepo.contribution_highlights.map((item) => (
                                         <p key={item} className="text-sm text-slate-300">- {item}</p>
@@ -714,9 +943,9 @@ const PublicPortfolio = () => {
                         )}
 
                         <div className="flex flex-wrap gap-3 mb-5">
-                            <span className={`px-3 py-1.5 rounded-lg text-sm ${themePreset.softCard}`}>Stars: {focusedRepo.stargazers_count || 0}</span>
-                            <span className={`px-3 py-1.5 rounded-lg text-sm ${themePreset.softCard}`}>Forks: {focusedRepo.forks_count || 0}</span>
-                            <span className={`px-3 py-1.5 rounded-lg text-sm ${themePreset.softCard}`}>Clicks: {projectClickMap.get(focusedRepo.id) || projectClickMap.get(focusedRepo.name) || 0}</span>
+                            <span className={`px-3 py-1.5 rounded-lg text-sm ${themePreset.softCard}`}>{p.stars}: {focusedRepo.stargazers_count || 0}</span>
+                            <span className={`px-3 py-1.5 rounded-lg text-sm ${themePreset.softCard}`}>{p.forks}: {focusedRepo.forks_count || 0}</span>
+                            <span className={`px-3 py-1.5 rounded-lg text-sm ${themePreset.softCard}`}>{p.clicks}: {projectClickMap.get(focusedRepo.id) || projectClickMap.get(focusedRepo.name) || 0}</span>
                         </div>
 
                         {focusedRepo.topics?.length > 0 && (
@@ -733,7 +962,7 @@ const PublicPortfolio = () => {
                                 onClick={() => openRepoExternal(focusedRepo, focusedRepo.html_url)}
                                 className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2.5 rounded-xl font-medium ${themePreset.button}`}
                             >
-                                <Github size={16} /> Open GitHub
+                                <Github size={16} /> {p.openGithub}
                             </button>
                             {focusedRepo.homepage && (
                                 <button
@@ -741,7 +970,7 @@ const PublicPortfolio = () => {
                                     onClick={() => openRepoExternal(focusedRepo, focusedRepo.homepage)}
                                     className={`inline-flex w-full sm:w-auto justify-center items-center gap-2 px-4 py-2.5 rounded-xl font-medium ${themePreset.button}`}
                                 >
-                                    <ExternalLink size={16} /> Open Demo
+                                    <ExternalLink size={16} /> {p.openDemo}
                                 </button>
                             )}
                         </div>

@@ -403,6 +403,98 @@ const getPortfolioByUsername = async (req, res) => {
   }
 };
 
+const getPortfolioPreview = async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ error: 'Token tidak ditemukan, silakan login ulang.' });
+  }
+
+  try {
+    const { username } = req.params;
+
+    const userResponse = await githubApiRequest({
+      url: 'https://api.github.com/user',
+      token,
+      retries: 1
+    });
+
+    const githubUsername = userResponse?.data?.login;
+    if (!githubUsername || githubUsername.toLowerCase() !== String(username).toLowerCase()) {
+      return res.status(403).json({ error: 'Kamu tidak punya akses untuk preview username ini.' });
+    }
+
+    const reposResponse = await githubApiRequest({
+      url: 'https://api.github.com/user/repos?sort=updated&per_page=100',
+      token,
+      retries: 1
+    });
+
+    const cleanRepos = (reposResponse?.data || [])
+      .filter((repo) => !repo.fork)
+      .map(normalizeRepository)
+      .sort((a, b) => b.stargazers_count - a.stargazers_count || new Date(b.updated_at) - new Date(a.updated_at))
+      .slice(0, MAX_PUBLIC_REPOS);
+
+    const reposWithStory = await mapWithConcurrency(cleanRepos, MAX_README_CONCURRENCY, async (repo) => {
+      const readme = githubUsername ? await fetchRepoReadme({ token, owner: githubUsername, repo: repo.name }) : '';
+      return {
+        ...repo,
+        ...buildProjectStory(repo, readme)
+      };
+    });
+
+    const existingPortfolio = await Portfolio.findOne({ username: githubUsername }).lean();
+    const safeCustomization = sanitizeCustomization(existingPortfolio?.customization || {});
+    const safeDraft = existingPortfolio?.draft ? sanitizeDraft(existingPortfolio.draft) : null;
+
+    const selectedRepoIds = safeDraft?.selectedRepoIds?.length
+      ? safeDraft.selectedRepoIds
+      : (existingPortfolio?.repositories?.length
+        ? existingPortfolio.repositories
+          .map((savedRepo) => {
+            const byId = savedRepo.id
+              ? reposWithStory.find((repo) => repo.id === savedRepo.id)
+              : null;
+            if (byId) return byId.id;
+
+            const byName = savedRepo.name
+              ? reposWithStory.find((repo) => repo.name === savedRepo.name)
+              : null;
+            return byName?.id || null;
+          })
+          .filter(Boolean)
+        : []);
+
+    const selectedSet = new Set(selectedRepoIds);
+    const selectedRepositories = reposWithStory.filter((repo) => selectedSet.has(repo.id));
+    const fallbackRepositories = reposWithStory.slice(0, Math.min(6, MAX_SAVED_REPOS));
+
+    return res.json({
+      username: githubUsername,
+      profile: {
+        name: userResponse?.data?.name || githubUsername,
+        username: githubUsername,
+        avatar_url: userResponse?.data?.avatar_url,
+        bio: userResponse?.data?.bio,
+        location: userResponse?.data?.location
+      },
+      repositories: selectedRepositories.length ? selectedRepositories.slice(0, MAX_SAVED_REPOS) : fallbackRepositories,
+      customization: safeDraft?.customization || safeCustomization,
+      analytics: existingPortfolio?.analytics || { views: 0, projectClicks: [], modalEvents: [] },
+      theme: existingPortfolio?.theme || 'dark',
+      isPreview: true
+    });
+  } catch (error) {
+    const status = error.response?.status === 403 ? 429 : 500;
+    console.error('Gagal mengambil data preview portofolio:', error.response?.data || error.message);
+    return res.status(status).json({
+      error: status === 429
+        ? 'Rate limit GitHub tercapai. Coba lagi beberapa saat.'
+        : 'Gagal mengambil data preview.'
+    });
+  }
+};
+
 const trackProjectClick = async (req, res) => {
   try {
     const { username } = req.params;
@@ -606,6 +698,7 @@ module.exports = {
   savePortfolioDraft,
   savePortfolio,
   getPortfolioByUsername,
+  getPortfolioPreview,
   trackProjectClick,
   trackModalEvent,
   getPortfolioAnalytics,

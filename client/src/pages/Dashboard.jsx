@@ -55,6 +55,8 @@ const I18N = {
         setupProgress: 'Setup Progress',
         stageFilled: 'tahap setup sudah terisi.',
         publishNow: 'Publish Sekarang',
+        previewDraft: 'Preview Draft',
+        previewDraftHint: 'Lihat tampilan draft sebelum publish',
         soundCue: 'Sound Cue',
         particleFx: 'Particle FX',
         celebration: 'Celebration',
@@ -152,6 +154,8 @@ const I18N = {
         setupProgress: 'Setup Progress',
         stageFilled: 'setup steps completed.',
         publishNow: 'Publish Now',
+        previewDraft: 'Preview Draft',
+        previewDraftHint: 'See draft appearance before publishing',
         soundCue: 'Sound Cue',
         particleFx: 'Particle FX',
         celebration: 'Celebration',
@@ -1089,6 +1093,15 @@ const Dashboard = () => {
                                             ))}
                                         </div>
                                     </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate(`/preview/${portfolioData.profile.username}`)}
+                                        className="w-full mb-2.5 flex items-center justify-center gap-2 px-5 py-2.5 border border-cyan-400/40 text-cyan-200 hover:text-white hover:border-cyan-300 rounded-xl transition-colors"
+                                    >
+                                        <ExternalLink size={16} /> {t.previewDraft}
+                                    </button>
+                                    <p className="text-[11px] text-slate-500 mb-3 text-center">{t.previewDraftHint}</p>
 
                                     <button
                                         onClick={handlePublish}
