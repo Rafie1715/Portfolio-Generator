@@ -9,6 +9,7 @@ const PREVIEW_I18N = {
         loading: 'MEMUAT DATA...',
         loadFailed: 'Gagal memuat portofolio.',
         sessionExpired: 'Sesi preview berakhir. Silakan login ulang dari dashboard.',
+        previewAccessDenied: 'Kamu tidak punya akses ke preview ini.',
         modeBadge: 'Preview Mode',
         modeDescription: 'Ini tampilan draft kamu dan belum dipublikasikan.',
         publishNow: 'Publish Sekarang',
@@ -66,6 +67,7 @@ const PREVIEW_I18N = {
         loading: 'LOADING DATA...',
         loadFailed: 'Failed to load portfolio.',
         sessionExpired: 'Preview session has ended. Please login again from the dashboard.',
+        previewAccessDenied: 'You do not have access to this preview.',
         modeBadge: 'Preview Mode',
         modeDescription: 'This is your draft view and it is not published yet.',
         publishNow: 'Publish Now',
@@ -155,11 +157,54 @@ const PublicPortfolio = ({ isPreview = false }) => {
                         return;
                     }
 
-                    const response = await axios.get(`${PORTFOLIO_API_BASE_URL}/preview/${username}`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    setData(response.data);
-                    return;
+                    try {
+                        const response = await axios.get(`${PORTFOLIO_API_BASE_URL}/preview/${username}`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+                        setData(response.data);
+                        return;
+                    } catch (previewError) {
+                        const previewStatus = previewError?.response?.status;
+                        if (previewStatus !== 404) {
+                            throw previewError;
+                        }
+
+                        const fallbackResponse = await axios.get(`${PORTFOLIO_API_BASE_URL}/data`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+
+                        const fallbackData = fallbackResponse.data || {};
+                        const fallbackProfile = fallbackData.profile || {};
+                        const profileUsername = String(fallbackProfile.username || '').toLowerCase();
+                        const routeUsername = String(username || '').toLowerCase();
+
+                        if (routeUsername && profileUsername && routeUsername !== profileUsername) {
+                            setError(p.previewAccessDenied);
+                            return;
+                        }
+
+                        const allRepos = Array.isArray(fallbackData.repositories) ? fallbackData.repositories : [];
+                        const draft = fallbackData.draft || null;
+                        const selectedRepoIds = Array.isArray(draft?.selectedRepoIds) && draft.selectedRepoIds.length
+                            ? draft.selectedRepoIds
+                            : (Array.isArray(fallbackData.selectedRepoIds) && fallbackData.selectedRepoIds.length
+                                ? fallbackData.selectedRepoIds
+                                : allRepos.slice(0, 6).map((repo) => repo.id));
+
+                        const selectedSet = new Set(selectedRepoIds);
+                        const selectedRepos = allRepos.filter((repo) => selectedSet.has(repo.id));
+
+                        setData({
+                            username: fallbackProfile.username,
+                            profile: fallbackProfile,
+                            repositories: selectedRepos.length ? selectedRepos : allRepos.slice(0, 6),
+                            customization: draft?.customization || fallbackData.customization || {},
+                            analytics: fallbackData.analytics || { views: 0, projectClicks: [], modalEvents: [] },
+                            theme: fallbackData.theme || 'dark',
+                            isPreview: true
+                        });
+                        return;
+                    }
                 }
 
                 const response = await axios.get(`${PORTFOLIO_API_BASE_URL}/${username}`);
@@ -172,7 +217,7 @@ const PublicPortfolio = ({ isPreview = false }) => {
         };
 
         fetchPublicData();
-    }, [username, isPreview, p.sessionExpired]);
+    }, [username, isPreview, p.sessionExpired, p.loadFailed, p.previewAccessDenied]);
 
     useEffect(() => {
         try {
