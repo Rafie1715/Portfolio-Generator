@@ -130,7 +130,14 @@ const I18N = {
         generatedHeadlineTemplate: '{name} adalah {role} yang fokus membangun produk web berkualitas. Terbiasa bekerja dengan {stack} serta mengembangkan {count} proyek pilihan yang siap digunakan.',
         localDraftRecovered: 'Draft lokal ditemukan dan berhasil dipulihkan.',
         serverDraftRecovered: 'Draft cloud ditemukan dan berhasil dipulihkan.',
-        draftSyncFailed: 'Gagal sinkronisasi draft ke server.'
+        draftSyncFailed: 'Gagal sinkronisasi draft ke server.',
+        draftSyncTitle: 'Status Sync Draft',
+        draftSyncIdle: 'Belum ada perubahan',
+        draftSyncSaving: 'Menyimpan perubahan...',
+        draftSyncSynced: 'Sinkron ke cloud',
+        draftSyncError: 'Gagal sinkron',
+        draftSyncNever: 'Belum pernah sinkron',
+        draftSyncJustNow: 'baru saja'
     },
     en: {
         dashboardSetup: 'Dashboard Setup',
@@ -220,7 +227,14 @@ const I18N = {
         generatedHeadlineTemplate: '{name} is a {role} focused on building high-quality web products. Comfortable working with {stack} and delivering {count} selected projects ready to use.',
         localDraftRecovered: 'Local draft found and restored successfully.',
         serverDraftRecovered: 'Cloud draft found and restored successfully.',
-        draftSyncFailed: 'Failed to sync draft to server.'
+        draftSyncFailed: 'Failed to sync draft to server.',
+        draftSyncTitle: 'Draft Sync Status',
+        draftSyncIdle: 'No recent changes',
+        draftSyncSaving: 'Saving changes...',
+        draftSyncSynced: 'Synced to cloud',
+        draftSyncError: 'Sync failed',
+        draftSyncNever: 'Never synced',
+        draftSyncJustNow: 'just now'
     }
 };
 const EMPTY_EXPERIENCE = { role: '', company: '', period: '', summary: '' };
@@ -228,6 +242,28 @@ const EMPTY_EDUCATION = { school: '', degree: '', period: '', summary: '' };
 const EMPTY_CERTIFICATION = { title: '', issuer: '', year: '', credentialUrl: '' };
 const API_BASE_URL = PORTFOLIO_API_BASE_URL;
 const DASHBOARD_DRAFT_PREFIX = 'portfolio_dashboard_draft_';
+
+const formatDraftSyncRelativeTime = (timestamp, locale, t) => {
+    if (!timestamp) return t.draftSyncNever;
+
+    const timestampMs = typeof timestamp === 'number' ? timestamp : new Date(timestamp).getTime();
+    if (!Number.isFinite(timestampMs)) return t.draftSyncNever;
+
+    const diffSeconds = Math.max(0, Math.floor((Date.now() - timestampMs) / 1000));
+    if (diffSeconds < 10) return t.draftSyncJustNow;
+
+    const rtf = new Intl.RelativeTimeFormat(locale === 'id' ? 'id-ID' : 'en-US', { numeric: 'auto' });
+
+    if (diffSeconds < 3600) {
+        return rtf.format(-Math.max(1, Math.floor(diffSeconds / 60)), 'minute');
+    }
+
+    if (diffSeconds < 86400) {
+        return rtf.format(-Math.floor(diffSeconds / 3600), 'hour');
+    }
+
+    return rtf.format(-Math.floor(diffSeconds / 86400), 'day');
+};
 
 const Dashboard = () => {
     const [searchParams] = useSearchParams();
@@ -256,6 +292,9 @@ const Dashboard = () => {
     const [celebrationEnabled, setCelebrationEnabled] = useState(localStorage.getItem('dashboard_celebration_enabled') !== '0');
     const [confettiBursts, setConfettiBursts] = useState([]);
     const [draftRecoveredFrom, setDraftRecoveredFrom] = useState(null);
+    const [draftSyncStatus, setDraftSyncStatus] = useState('idle');
+    const [lastDraftSyncedAt, setLastDraftSyncedAt] = useState(null);
+    const [draftSyncTick, setDraftSyncTick] = useState(0);
     const draftHydratedRef = useRef(false);
     const draftSyncFailedMessage = (I18N[locale] || I18N.id).draftSyncFailed;
 
@@ -343,6 +382,14 @@ const Dashboard = () => {
                     setDraftRecoveredFrom(null);
                 }
 
+                if (serverDraft?.updatedAt) {
+                    setLastDraftSyncedAt(serverDraft.updatedAt);
+                    setDraftSyncStatus('synced');
+                } else {
+                    setLastDraftSyncedAt(null);
+                    setDraftSyncStatus('idle');
+                }
+
                 setSelectedRepoIds(resolvedRepoIds);
                 setJobTitle(resolvedCustomization.jobTitle || '');
                 setLinkedinUrl(resolvedCustomization.linkedinUrl || '');
@@ -406,6 +453,7 @@ const Dashboard = () => {
 
         const timeoutId = window.setTimeout(async () => {
             try {
+                setDraftSyncStatus('saving');
                 await axios.post(`${API_BASE_URL}/save-draft`, {
                     username,
                     selectedRepoIds,
@@ -421,7 +469,10 @@ const Dashboard = () => {
                         certifications
                     }
                 });
+                setDraftSyncStatus('synced');
+                setLastDraftSyncedAt(Date.now());
             } catch (error) {
+                setDraftSyncStatus('error');
                 console.warn(draftSyncFailedMessage, error);
             }
         }, 1000);
@@ -442,6 +493,16 @@ const Dashboard = () => {
         certifications,
         draftSyncFailedMessage
     ]);
+
+    useEffect(() => {
+        if (!lastDraftSyncedAt) return undefined;
+
+        const intervalId = window.setInterval(() => {
+            setDraftSyncTick((current) => current + 1);
+        }, 30000);
+
+        return () => window.clearInterval(intervalId);
+    }, [lastDraftSyncedAt]);
 
     const filteredRepositories = useMemo(() => {
         if (!portfolioData) return [];
@@ -477,6 +538,18 @@ const Dashboard = () => {
     }, [portfolioData, selectedRepoIds]);
 
     const t = I18N[locale] || I18N.id;
+
+    const draftSyncLabel = useMemo(() => {
+        if (draftSyncStatus === 'saving') return t.draftSyncSaving;
+        if (draftSyncStatus === 'synced') return t.draftSyncSynced;
+        if (draftSyncStatus === 'error') return t.draftSyncError;
+        return t.draftSyncIdle;
+    }, [draftSyncStatus, t]);
+
+    const draftSyncRelativeTime = useMemo(
+        () => formatDraftSyncRelativeTime(lastDraftSyncedAt, locale, t),
+        [lastDraftSyncedAt, locale, t, draftSyncTick]
+    );
 
     const setupChecks = useMemo(() => ([
         { key: 'repos', label: t.checklistRepos, done: selectedRepositories.length > 0, targetId: 'repo-selection' },
@@ -890,6 +963,15 @@ const Dashboard = () => {
                                 {draftRecoveredFrom === 'local' ? t.localDraftRecovered : t.serverDraftRecovered}
                             </div>
                         ) : null}
+
+                        <div className="rounded-xl border border-slate-700/70 bg-slate-900/60 px-4 py-3 text-xs text-slate-200 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex items-center gap-2">
+                                <span className={`inline-flex h-2.5 w-2.5 rounded-full ${draftSyncStatus === 'saving' ? 'bg-cyan-300 animate-pulse' : draftSyncStatus === 'synced' ? 'bg-emerald-300' : draftSyncStatus === 'error' ? 'bg-red-400' : 'bg-slate-500'}`} />
+                                <span className="font-medium text-slate-100">{t.draftSyncTitle}:</span>
+                                <span>{draftSyncLabel}</span>
+                            </div>
+                            <span className="text-[11px] text-slate-400">{draftSyncRelativeTime}</span>
+                        </div>
 
                         {lowSpecMode ? (
                             <div className="rounded-xl border border-amber-500/30 bg-amber-900/15 px-4 py-2.5 text-xs text-amber-200">

@@ -8,8 +8,6 @@ const {
 	trackProjectClick,
 	trackModalEvent,
 	getPortfolioAnalytics,
-	getDomainStatus,
-	triggerDeploy,
 	getPortfolioOgImage,
 	getShareMetadata
 } = require('../controllers/portfolioController');
@@ -20,8 +18,6 @@ router.post('/save', savePortfolio); // Rute privat (butuh token)
 router.post('/:username/click', trackProjectClick);
 router.post('/:username/modal-event', trackModalEvent);
 router.get('/:username/analytics', getPortfolioAnalytics);
-router.get('/:username/domain-status', getDomainStatus);
-router.post('/:username/deploy', triggerDeploy);
 router.get('/:username/og.svg', getPortfolioOgImage);
 router.get('/:username/share', getShareMetadata);
 

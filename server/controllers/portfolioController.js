@@ -1,5 +1,4 @@
 const axios = require('axios');
-const dns = require('node:dns').promises;
 const Portfolio = require('../models/Portfolio');
 
 const MAX_PUBLIC_REPOS = 12;
@@ -168,16 +167,6 @@ const sanitizeCustomization = (customization = {}) => ({
   accentColor: customization.accentColor || '#38bdf8',
   visualTheme: SUPPORTED_THEMES.includes(customization.visualTheme) ? customization.visualTheme : 'glassmorphism',
   customDomain: String(customization.customDomain || '').replace(/^https?:\/\//, '').trim(),
-  deployProvider: String(customization.deployProvider || '').trim(),
-  deployConfig: {
-    githubRepo: String(customization.deployConfig?.githubRepo || '').trim(),
-    githubBranch: String(customization.deployConfig?.githubBranch || 'main').trim() || 'main',
-    vercelProjectId: String(customization.deployConfig?.vercelProjectId || '').trim(),
-    vercelTeamId: String(customization.deployConfig?.vercelTeamId || '').trim(),
-    vercelDeployHookUrl: String(customization.deployConfig?.vercelDeployHookUrl || '').trim(),
-    netlifySiteId: String(customization.deployConfig?.netlifySiteId || '').trim(),
-    netlifyBuildHookUrl: String(customization.deployConfig?.netlifyBuildHookUrl || '').trim()
-  },
   experiences: Array.isArray(customization.experiences)
     ? customization.experiences
       .map((item = {}) => ({
@@ -526,167 +515,6 @@ const getPortfolioAnalytics = async (req, res) => {
   }
 };
 
-const getDomainStatus = async (req, res) => {
-  try {
-    const { username } = req.params;
-    const portfolio = await Portfolio.findOne({ username });
-
-    if (!portfolio) {
-      return res.status(404).json({ error: 'Portofolio tidak ditemukan.' });
-    }
-
-    const domain = portfolio.customization?.customDomain;
-    if (!domain) {
-      return res.json({ status: 'none', message: 'Custom domain belum diatur.' });
-    }
-
-    const normalizedDomain = String(domain).replace(/^https?:\/\//, '').trim();
-    let cnameRecords = [];
-    let aRecords = [];
-
-    try {
-      cnameRecords = await dns.resolveCname(normalizedDomain);
-    } catch (error) {
-      if (error.code !== 'ENODATA' && error.code !== 'ENOTFOUND' && error.code !== 'ENODOMAIN') {
-        throw error;
-      }
-    }
-
-    try {
-      aRecords = await dns.resolve4(normalizedDomain);
-    } catch (error) {
-      if (error.code !== 'ENODATA' && error.code !== 'ENOTFOUND' && error.code !== 'ENODOMAIN') {
-        throw error;
-      }
-    }
-
-    const cnameValue = cnameRecords[0] || '';
-    const connected = /vercel\.dns\.com|vercel\.app|netlify\.app/i.test(cnameValue);
-
-    if (connected) {
-      return res.json({
-        status: 'connected',
-        message: `Domain terhubung melalui CNAME ${cnameValue}.`,
-        records: { cname: cnameRecords, a: aRecords }
-      });
-    }
-
-    if (cnameRecords.length || aRecords.length) {
-      return res.json({
-        status: 'pending',
-        message: 'Record DNS terdeteksi, namun belum cocok dengan target deploy provider.',
-        records: { cname: cnameRecords, a: aRecords }
-      });
-    }
-
-    return res.json({
-      status: 'error',
-      message: 'Record DNS belum ditemukan untuk domain ini.',
-      records: { cname: [], a: [] }
-    });
-  } catch (error) {
-    console.error('Gagal validasi DNS:', error);
-    return res.status(500).json({ status: 'error', message: 'Gagal memeriksa DNS domain.' });
-  }
-};
-
-const triggerDeploy = async (req, res) => {
-  try {
-    const { username } = req.params;
-    const { provider, token } = req.body || {};
-
-    const portfolio = await Portfolio.findOne({ username });
-    if (!portfolio) {
-      return res.status(404).json({ error: 'Portofolio tidak ditemukan.' });
-    }
-
-    const selectedProvider = provider || portfolio.customization?.deployProvider;
-    const deployConfig = portfolio.customization?.deployConfig || {};
-
-    if (!selectedProvider) {
-      return res.status(400).json({ error: 'Provider deploy belum dipilih.' });
-    }
-
-    if (selectedProvider === 'netlify') {
-      if (deployConfig.netlifyBuildHookUrl) {
-        await axios.post(deployConfig.netlifyBuildHookUrl);
-        return res.json({ success: true, provider: 'netlify', message: 'Deploy Netlify dipicu melalui build hook.' });
-      }
-
-      if (!token || !deployConfig.netlifySiteId) {
-        return res.status(400).json({ error: 'Butuh Netlify token dan netlifySiteId atau build hook URL.' });
-      }
-
-      const response = await axios.post(
-        `https://api.netlify.com/api/v1/sites/${deployConfig.netlifySiteId}/builds`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      return res.json({
-        success: true,
-        provider: 'netlify',
-        message: 'Deploy Netlify berhasil dipicu.',
-        deployId: response.data?.id || null
-      });
-    }
-
-    if (selectedProvider === 'vercel') {
-      if (deployConfig.vercelDeployHookUrl) {
-        await axios.post(deployConfig.vercelDeployHookUrl);
-        return res.json({ success: true, provider: 'vercel', message: 'Deploy Vercel dipicu melalui deploy hook.' });
-      }
-
-      if (!token) {
-        return res.status(400).json({ error: 'Butuh Vercel token atau deploy hook URL.' });
-      }
-
-      const query = deployConfig.vercelTeamId
-        ? `?teamId=${encodeURIComponent(deployConfig.vercelTeamId)}`
-        : '';
-
-      const body = {
-        name: `${username}-portfolio`,
-        target: 'production'
-      };
-
-      if (deployConfig.vercelProjectId) {
-        body.project = deployConfig.vercelProjectId;
-      }
-
-      if (deployConfig.githubRepo) {
-        body.gitSource = {
-          type: 'github',
-          repo: deployConfig.githubRepo,
-          ref: deployConfig.githubBranch || 'main'
-        };
-      }
-
-      const response = await axios.post(
-        `https://api.vercel.com/v13/deployments${query}`,
-        body,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      return res.json({
-        success: true,
-        provider: 'vercel',
-        message: 'Deploy Vercel berhasil dipicu.',
-        deployUrl: response.data?.url || null,
-        deployId: response.data?.id || null
-      });
-    }
-
-    return res.status(400).json({ error: 'Provider deploy tidak didukung.' });
-  } catch (error) {
-    console.error('Gagal trigger deploy:', error.response?.data || error.message);
-    return res.status(500).json({
-      error: 'Gagal memicu deploy otomatis.',
-      details: error.response?.data?.error?.message || error.response?.data || error.message
-    });
-  }
-};
-
 const getPortfolioOgImage = async (req, res) => {
   try {
     const { username } = req.params;
@@ -781,8 +609,6 @@ module.exports = {
   trackProjectClick,
   trackModalEvent,
   getPortfolioAnalytics,
-  getDomainStatus,
-  triggerDeploy,
   getPortfolioOgImage,
   getShareMetadata
 };

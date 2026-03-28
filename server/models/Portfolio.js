@@ -12,16 +12,6 @@ const portfolioSchema = new mongoose.Schema({
     accentColor: { type: String, default: '#38bdf8' },
     visualTheme: { type: String, default: 'glassmorphism' },
     customDomain: { type: String, default: '' },
-    deployProvider: { type: String, default: '' },
-    deployConfig: {
-      githubRepo: { type: String, default: '' },
-      githubBranch: { type: String, default: 'main' },
-      vercelProjectId: { type: String, default: '' },
-      vercelTeamId: { type: String, default: '' },
-      vercelDeployHookUrl: { type: String, default: '' },
-      netlifySiteId: { type: String, default: '' },
-      netlifyBuildHookUrl: { type: String, default: '' }
-    },
     experiences: [{
       role: { type: String, default: '' },
       company: { type: String, default: '' },
@@ -87,16 +77,6 @@ const portfolioSchema = new mongoose.Schema({
       accentColor: { type: String, default: '#38bdf8' },
       visualTheme: { type: String, default: 'glassmorphism' },
       customDomain: { type: String, default: '' },
-      deployProvider: { type: String, default: '' },
-      deployConfig: {
-        githubRepo: { type: String, default: '' },
-        githubBranch: { type: String, default: 'main' },
-        vercelProjectId: { type: String, default: '' },
-        vercelTeamId: { type: String, default: '' },
-        vercelDeployHookUrl: { type: String, default: '' },
-        netlifySiteId: { type: String, default: '' },
-        netlifyBuildHookUrl: { type: String, default: '' }
-      },
       experiences: [{
         role: { type: String, default: '' },
         company: { type: String, default: '' },
