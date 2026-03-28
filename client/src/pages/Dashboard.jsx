@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { LogOut, Star, Code2, Rocket, LayoutDashboard, Terminal, Linkedin, Sparkles, GitFork, Search, Briefcase, GraduationCap, Plus, Trash2, Award, WandSparkles, CheckCircle2, Circle } from 'lucide-react';
+import { LogOut, Star, Code2, Rocket, LayoutDashboard, Terminal, Linkedin, Sparkles, GitFork, Search, Briefcase, GraduationCap, Plus, Trash2, Award, WandSparkles, CheckCircle2, Circle, ExternalLink } from 'lucide-react';
 import { PORTFOLIO_API_BASE_URL } from '../config/api';
 
 const MAX_SELECTED_REPOS = 9;
