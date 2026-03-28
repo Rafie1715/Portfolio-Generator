@@ -50,7 +50,7 @@ const I18N = {
         syncingGithub: 'Menyinkronkan data dari GitHub...',
         controlRoom: 'Portfolio Control Room',
         heroTitle: 'Bikin portofolio yang bukan cuma rapi, tapi juga punya karakter.',
-        heroSubtitle: 'Kurasi project, atur narasi profesional, lalu deploy langsung ke provider pilihanmu. Semua dari satu dashboard.',
+        heroSubtitle: 'Kurasi project, atur narasi profesional, lalu publish ke halaman publikmu. Semua dari satu dashboard.',
         viewMode: 'Mode Tampilan:',
         setupProgress: 'Setup Progress',
         stageFilled: 'tahap setup sudah terisi.',
@@ -82,7 +82,6 @@ const I18N = {
         checklistJob: 'Isi posisi atau keahlian utama',
         checklistHeadline: 'Tulis headline personal',
         checklistDomain: 'Set custom domain (opsional)',
-        checklistDeploy: 'Pilih provider deploy',
         checklistExp: 'Tambah pengalaman kerja',
         checklistEdu: 'Tambah riwayat pendidikan',
         checklistCert: 'Tambah sertifikasi/achievement',
@@ -98,23 +97,6 @@ const I18N = {
         publicVisualTheme: 'Tema Visual Publik',
         customDomainOptional: 'Custom Domain (Opsional)',
         customDomainPlaceholder: 'portfolio.namadomain.com',
-        oneClickDeploy: 'One-Click Deploy',
-        deployVercel: 'Deploy ke Vercel',
-        deployNetlify: 'Deploy ke Netlify',
-        deployHelper: 'Wizard resmi provider tetap tersedia, atau gunakan trigger API di bawah untuk deploy otomatis.',
-        githubRepoLabel: 'GitHub Repo (owner/repo)',
-        githubRepoPlaceholder: 'contoh: username/portfolio-generator',
-        branchPlaceholder: 'Branch deploy (default: main)',
-        vercelProjectId: 'Vercel Project ID',
-        vercelTeamIdOptional: 'Vercel Team ID (opsional)',
-        vercelHookOptional: 'Vercel Deploy Hook URL (opsional)',
-        netlifySiteId: 'Netlify Site ID',
-        netlifyHookOptional: 'Netlify Build Hook URL (opsional)',
-        providerTokenOptional: 'Token provider (opsional jika pakai hook URL)',
-        triggeringDeploy: 'Memicu Deploy...',
-        triggerDeployApi: 'Trigger Deploy API',
-        checkingDns: 'Cek DNS...',
-        checkDnsStatus: 'Cek Status DNS',
         experience: 'Pengalaman',
         education: 'Pendidikan',
         certification: 'Sertifikasi / Achievement',
@@ -145,11 +127,6 @@ const I18N = {
         publishRedirectNote: 'Kamu akan diarahkan ke halaman publikmu!',
         publishFailed: 'Gagal mem-publish portofolio.',
         maxRepoReached: 'Maksimal {count} repositori.',
-        dnsCheckFailedFallback: 'Gagal cek status DNS domain.',
-        chooseDeployProviderFirst: 'Pilih provider deploy terlebih dahulu.',
-        deployTriggeredFallback: 'Deploy berhasil dipicu.',
-        deployTriggerFailedFallback: 'Gagal memicu deploy otomatis.',
-        urlLabel: 'URL',
         generatedHeadlineTemplate: '{name} adalah {role} yang fokus membangun produk web berkualitas. Terbiasa bekerja dengan {stack} serta mengembangkan {count} proyek pilihan yang siap digunakan.',
         localDraftRecovered: 'Draft lokal ditemukan dan berhasil dipulihkan.',
         serverDraftRecovered: 'Draft cloud ditemukan dan berhasil dipulihkan.',
@@ -163,7 +140,7 @@ const I18N = {
         syncingGithub: 'Syncing data from GitHub...',
         controlRoom: 'Portfolio Control Room',
         heroTitle: 'Build a portfolio that is not only clean, but full of personality.',
-        heroSubtitle: 'Curate projects, shape your professional story, then deploy directly to your preferred provider.',
+        heroSubtitle: 'Curate projects, shape your professional story, then publish it to your public page.',
         viewMode: 'View Mode:',
         setupProgress: 'Setup Progress',
         stageFilled: 'setup steps completed.',
@@ -195,7 +172,6 @@ const I18N = {
         checklistJob: 'Fill in your role or primary skill',
         checklistHeadline: 'Write a personal headline',
         checklistDomain: 'Set custom domain (optional)',
-        checklistDeploy: 'Choose a deploy provider',
         checklistExp: 'Add work experience',
         checklistEdu: 'Add education history',
         checklistCert: 'Add certifications/achievements',
@@ -211,23 +187,6 @@ const I18N = {
         publicVisualTheme: 'Public Visual Theme',
         customDomainOptional: 'Custom Domain (Optional)',
         customDomainPlaceholder: 'portfolio.yourdomain.com',
-        oneClickDeploy: 'One-Click Deploy',
-        deployVercel: 'Deploy to Vercel',
-        deployNetlify: 'Deploy to Netlify',
-        deployHelper: 'Official provider wizard is still available, or use the API trigger below for automated deploy.',
-        githubRepoLabel: 'GitHub Repo (owner/repo)',
-        githubRepoPlaceholder: 'example: username/portfolio-generator',
-        branchPlaceholder: 'Deploy branch (default: main)',
-        vercelProjectId: 'Vercel Project ID',
-        vercelTeamIdOptional: 'Vercel Team ID (optional)',
-        vercelHookOptional: 'Vercel Deploy Hook URL (optional)',
-        netlifySiteId: 'Netlify Site ID',
-        netlifyHookOptional: 'Netlify Build Hook URL (optional)',
-        providerTokenOptional: 'Provider token (optional if using hook URL)',
-        triggeringDeploy: 'Triggering Deploy...',
-        triggerDeployApi: 'Trigger Deploy API',
-        checkingDns: 'Checking DNS...',
-        checkDnsStatus: 'Check DNS Status',
         experience: 'Experience',
         education: 'Education',
         certification: 'Certification / Achievement',
@@ -258,11 +217,6 @@ const I18N = {
         publishRedirectNote: 'You will be redirected to your public page!',
         publishFailed: 'Failed to publish portfolio.',
         maxRepoReached: 'Maximum {count} repositories.',
-        dnsCheckFailedFallback: 'Failed to check DNS domain status.',
-        chooseDeployProviderFirst: 'Please choose a deploy provider first.',
-        deployTriggeredFallback: 'Deployment has been triggered.',
-        deployTriggerFailedFallback: 'Failed to trigger automated deployment.',
-        urlLabel: 'URL',
         generatedHeadlineTemplate: '{name} is a {role} focused on building high-quality web products. Comfortable working with {stack} and delivering {count} selected projects ready to use.',
         localDraftRecovered: 'Local draft found and restored successfully.',
         serverDraftRecovered: 'Cloud draft found and restored successfully.',
@@ -272,15 +226,6 @@ const I18N = {
 const EMPTY_EXPERIENCE = { role: '', company: '', period: '', summary: '' };
 const EMPTY_EDUCATION = { school: '', degree: '', period: '', summary: '' };
 const EMPTY_CERTIFICATION = { title: '', issuer: '', year: '', credentialUrl: '' };
-const EMPTY_DEPLOY_CONFIG = {
-    githubRepo: '',
-    githubBranch: 'main',
-    vercelProjectId: '',
-    vercelTeamId: '',
-    vercelDeployHookUrl: '',
-    netlifySiteId: '',
-    netlifyBuildHookUrl: ''
-};
 const API_BASE_URL = PORTFOLIO_API_BASE_URL;
 const DASHBOARD_DRAFT_PREFIX = 'portfolio_dashboard_draft_';
 
@@ -297,18 +242,12 @@ const Dashboard = () => {
     const [accentColor, setAccentColor] = useState('#38bdf8');
     const [visualTheme, setVisualTheme] = useState('glassmorphism');
     const [customDomain, setCustomDomain] = useState('');
-    const [deployProvider, setDeployProvider] = useState('');
     const [repoQuery, setRepoQuery] = useState('');
     const [sortBy, setSortBy] = useState('stars');
     const [selectedRepoIds, setSelectedRepoIds] = useState([]);
     const [experiences, setExperiences] = useState([{ ...EMPTY_EXPERIENCE }]);
     const [educations, setEducations] = useState([{ ...EMPTY_EDUCATION }]);
     const [certifications, setCertifications] = useState([{ ...EMPTY_CERTIFICATION }]);
-    const [deployConfig, setDeployConfig] = useState({ ...EMPTY_DEPLOY_CONFIG });
-    const [deployToken, setDeployToken] = useState('');
-    const [dnsStatus, setDnsStatus] = useState(null);
-    const [dnsChecking, setDnsChecking] = useState(false);
-    const [deployLoading, setDeployLoading] = useState(false);
     const [layoutMode, setLayoutMode] = useState(localStorage.getItem('dashboard_layout_mode') || 'cinematic');
     const [locale, setLocale] = useState(localStorage.getItem('dashboard_locale') || 'id');
     const [soundEnabled, setSoundEnabled] = useState(localStorage.getItem('dashboard_sound_enabled') !== '0');
@@ -411,14 +350,9 @@ const Dashboard = () => {
                 setAccentColor(resolvedCustomization.accentColor || '#38bdf8');
                 setVisualTheme(resolvedCustomization.visualTheme || 'glassmorphism');
                 setCustomDomain(resolvedCustomization.customDomain || '');
-                setDeployProvider(resolvedCustomization.deployProvider || '');
                 setExperiences(resolvedCustomization.experiences?.length ? resolvedCustomization.experiences : [{ ...EMPTY_EXPERIENCE }]);
                 setEducations(resolvedCustomization.educations?.length ? resolvedCustomization.educations : [{ ...EMPTY_EDUCATION }]);
                 setCertifications(resolvedCustomization.certifications?.length ? resolvedCustomization.certifications : [{ ...EMPTY_CERTIFICATION }]);
-                setDeployConfig({
-                    ...EMPTY_DEPLOY_CONFIG,
-                    ...(resolvedCustomization.deployConfig || {})
-                });
                 draftHydratedRef.current = true;
             } catch (error) {
                 console.error("Gagal mengambil data:", error);
@@ -444,8 +378,6 @@ const Dashboard = () => {
                 accentColor,
                 visualTheme,
                 customDomain,
-                deployProvider,
-                deployConfig,
                 experiences,
                 educations,
                 certifications
@@ -463,8 +395,6 @@ const Dashboard = () => {
         accentColor,
         visualTheme,
         customDomain,
-        deployProvider,
-        deployConfig,
         experiences,
         educations,
         certifications
@@ -486,8 +416,6 @@ const Dashboard = () => {
                         accentColor,
                         visualTheme,
                         customDomain,
-                        deployProvider,
-                        deployConfig,
                         experiences,
                         educations,
                         certifications
@@ -509,8 +437,6 @@ const Dashboard = () => {
         accentColor,
         visualTheme,
         customDomain,
-        deployProvider,
-        deployConfig,
         experiences,
         educations,
         certifications,
@@ -557,11 +483,10 @@ const Dashboard = () => {
         { key: 'job', label: t.checklistJob, done: Boolean(jobTitle.trim()), targetId: 'profile-setup' },
         { key: 'headline', label: t.checklistHeadline, done: Boolean(headline.trim()), targetId: 'profile-setup' },
         { key: 'domain', label: t.checklistDomain, done: Boolean(customDomain.trim()), targetId: 'profile-setup' },
-        { key: 'deploy', label: t.checklistDeploy, done: Boolean(deployProvider.trim()), targetId: 'profile-setup' },
         { key: 'exp', label: t.checklistExp, done: experiences.some((item) => item.role || item.company), targetId: 'experience-section' },
         { key: 'edu', label: t.checklistEdu, done: educations.some((item) => item.school || item.degree), targetId: 'education-section' },
         { key: 'cert', label: t.checklistCert, done: certifications.some((item) => item.title || item.issuer), targetId: 'certification-section' }
-    ]), [selectedRepositories, jobTitle, headline, customDomain, deployProvider, experiences, educations, certifications, t]);
+    ]), [selectedRepositories, jobTitle, headline, customDomain, experiences, educations, certifications, t]);
 
     const setupProgress = useMemo(() => {
         const done = setupChecks.filter((item) => item.done).length;
@@ -731,8 +656,6 @@ const Dashboard = () => {
                     accentColor,
                     visualTheme,
                     customDomain,
-                    deployProvider,
-                    deployConfig,
                     experiences,
                     educations,
                     certifications
@@ -826,66 +749,6 @@ const Dashboard = () => {
             .replace('{stack}', topLanguages || (locale === 'en' ? 'modern technologies' : 'teknologi modern'))
             .replace('{count}', String(projectCount));
         setHeadline(generatedHeadline);
-    };
-
-    const handleOneClickDeploy = (provider) => {
-        setDeployProvider(provider);
-        const target = provider === 'vercel' ? 'https://vercel.com/new' : 'https://app.netlify.com/start';
-        window.open(target, '_blank', 'noopener,noreferrer');
-    };
-
-    const updateDeployConfigField = (field, value) => {
-        setDeployConfig((current) => ({ ...current, [field]: value }));
-    };
-
-    const handleCheckDomainStatus = async () => {
-        const username = portfolioData?.profile?.username;
-        if (!username) return;
-
-        try {
-            setDnsChecking(true);
-            setDnsStatus(null);
-            const response = await axios.get(`${API_BASE_URL}/${username}/domain-status`);
-            setDnsStatus(response.data);
-        } catch (error) {
-            setDnsStatus({
-                status: 'error',
-                message: error.response?.data?.message || error.response?.data?.error || t.dnsCheckFailedFallback
-            });
-        } finally {
-            setDnsChecking(false);
-        }
-    };
-
-    const handleTriggerDeploy = async () => {
-        const username = portfolioData?.profile?.username;
-        if (!username) return;
-        if (!deployProvider) {
-            alert(t.chooseDeployProviderFirst);
-            return;
-        }
-
-        try {
-            setDeployLoading(true);
-            const response = await axios.post(`${API_BASE_URL}/${username}/deploy`, {
-                provider: deployProvider,
-                token: deployToken || undefined
-            });
-
-            const deployMessage = response.data?.deployUrl
-                ? `${response.data.message}\n${t.urlLabel}: https://${response.data.deployUrl}`
-                : response.data?.message || t.deployTriggeredFallback;
-
-            playSuccessCue();
-            alert(deployMessage);
-        } catch (error) {
-            const message = error.response?.data?.details
-                || error.response?.data?.error
-                || t.deployTriggerFailedFallback;
-            alert(message);
-        } finally {
-            setDeployLoading(false);
-        }
     };
 
     if (!token) {
@@ -1325,125 +1188,6 @@ const Dashboard = () => {
                                                         placeholder={t.customDomainPlaceholder}
                                                         className="w-full bg-[#0a0a0a] border border-slate-700 hover:border-slate-600 rounded-lg px-4 py-2.5 text-sm text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-600"
                                                     />
-                                                </div>
-
-                                                <div className="pt-3 border-t border-slate-800/80">
-                                                    <label className="block text-xs font-medium text-slate-500 mb-2">{t.oneClickDeploy}</label>
-                                                    <div className="grid grid-cols-2 gap-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleOneClickDeploy('vercel')}
-                                                            className={`px-3 py-2 rounded-lg border text-xs font-medium ${deployProvider === 'vercel' ? 'border-blue-500 text-blue-300 bg-blue-900/20' : 'border-slate-700 text-slate-300 hover:border-slate-600'}`}
-                                                        >
-                                                            {t.deployVercel}
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleOneClickDeploy('netlify')}
-                                                            className={`px-3 py-2 rounded-lg border text-xs font-medium ${deployProvider === 'netlify' ? 'border-blue-500 text-blue-300 bg-blue-900/20' : 'border-slate-700 text-slate-300 hover:border-slate-600'}`}
-                                                        >
-                                                            {t.deployNetlify}
-                                                        </button>
-                                                    </div>
-                                                    <p className="text-[11px] text-slate-500 mt-2">
-                                                        {t.deployHelper}
-                                                    </p>
-
-                                                    <div className="mt-3 p-3 rounded-xl border border-slate-700/70 bg-slate-900/50 space-y-2">
-                                                        <label className="block text-xs font-medium text-slate-500">{t.githubRepoLabel}</label>
-                                                        <input
-                                                            type="text"
-                                                            value={deployConfig.githubRepo}
-                                                            onChange={(e) => updateDeployConfigField('githubRepo', e.target.value)}
-                                                            placeholder={t.githubRepoPlaceholder}
-                                                            className="w-full bg-[#0a0a0a] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-blue-500"
-                                                        />
-                                                        <input
-                                                            type="text"
-                                                            value={deployConfig.githubBranch}
-                                                            onChange={(e) => updateDeployConfigField('githubBranch', e.target.value)}
-                                                            placeholder={t.branchPlaceholder}
-                                                            className="w-full bg-[#0a0a0a] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-blue-500"
-                                                        />
-
-                                                        {deployProvider === 'vercel' ? (
-                                                            <>
-                                                                <input
-                                                                    type="text"
-                                                                    value={deployConfig.vercelProjectId}
-                                                                    onChange={(e) => updateDeployConfigField('vercelProjectId', e.target.value)}
-                                                                    placeholder={t.vercelProjectId}
-                                                                    className="w-full bg-[#0a0a0a] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-blue-500"
-                                                                />
-                                                                <input
-                                                                    type="text"
-                                                                    value={deployConfig.vercelTeamId}
-                                                                    onChange={(e) => updateDeployConfigField('vercelTeamId', e.target.value)}
-                                                                    placeholder={t.vercelTeamIdOptional}
-                                                                    className="w-full bg-[#0a0a0a] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-blue-500"
-                                                                />
-                                                                <input
-                                                                    type="url"
-                                                                    value={deployConfig.vercelDeployHookUrl}
-                                                                    onChange={(e) => updateDeployConfigField('vercelDeployHookUrl', e.target.value)}
-                                                                    placeholder={t.vercelHookOptional}
-                                                                    className="w-full bg-[#0a0a0a] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-blue-500"
-                                                                />
-                                                            </>
-                                                        ) : null}
-
-                                                        {deployProvider === 'netlify' ? (
-                                                            <>
-                                                                <input
-                                                                    type="text"
-                                                                    value={deployConfig.netlifySiteId}
-                                                                    onChange={(e) => updateDeployConfigField('netlifySiteId', e.target.value)}
-                                                                    placeholder={t.netlifySiteId}
-                                                                    className="w-full bg-[#0a0a0a] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-blue-500"
-                                                                />
-                                                                <input
-                                                                    type="url"
-                                                                    value={deployConfig.netlifyBuildHookUrl}
-                                                                    onChange={(e) => updateDeployConfigField('netlifyBuildHookUrl', e.target.value)}
-                                                                    placeholder={t.netlifyHookOptional}
-                                                                    className="w-full bg-[#0a0a0a] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-blue-500"
-                                                                />
-                                                            </>
-                                                        ) : null}
-
-                                                        <input
-                                                            type="password"
-                                                            value={deployToken}
-                                                            onChange={(e) => setDeployToken(e.target.value)}
-                                                            placeholder={t.providerTokenOptional}
-                                                            className="w-full bg-[#0a0a0a] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-blue-500"
-                                                        />
-
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                                                            <button
-                                                                type="button"
-                                                                onClick={handleTriggerDeploy}
-                                                                disabled={deployLoading}
-                                                                className="px-3 py-2 rounded-lg border border-emerald-500/50 text-emerald-300 text-xs font-semibold hover:bg-emerald-900/20 disabled:opacity-60"
-                                                            >
-                                                                {deployLoading ? t.triggeringDeploy : t.triggerDeployApi}
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={handleCheckDomainStatus}
-                                                                disabled={dnsChecking}
-                                                                className="px-3 py-2 rounded-lg border border-cyan-500/50 text-cyan-300 text-xs font-semibold hover:bg-cyan-900/20 disabled:opacity-60"
-                                                            >
-                                                                {dnsChecking ? t.checkingDns : t.checkDnsStatus}
-                                                            </button>
-                                                        </div>
-
-                                                        {dnsStatus ? (
-                                                            <div className={`text-[11px] px-3 py-2 rounded border ${dnsStatus.status === 'connected' ? 'border-emerald-500/40 text-emerald-300 bg-emerald-900/15' : dnsStatus.status === 'pending' ? 'border-amber-500/40 text-amber-300 bg-amber-900/15' : 'border-rose-500/40 text-rose-300 bg-rose-900/15'}`}>
-                                                                {dnsStatus.message}
-                                                            </div>
-                                                        ) : null}
-                                                    </div>
                                                 </div>
 
                                                 <div id="experience-section" className="pt-2 border-t border-slate-800/80">
